@@ -5,6 +5,31 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import './styles.css';
 const MODEL_PATH = import.meta.env.BASE_URL + 'models/3DModel_Simulation.fbx';
+const MODEL_RESOURCE_PATH = import.meta.env.BASE_URL + 'models/';
+const TEXTURE_BASE_PATH = import.meta.env.BASE_URL + 'models/textures/';
+const TEXTURE_FILES = [
+  'Hs_325_copy.jpg',
+  'Metal_Silver.jpg',
+  'Rep_2_back.jpg',
+  'Rep_2_front.jpg',
+  'Rep_2_left.jpg',
+  'Rep_2_right.jpg',
+  'Translucent_Glass_Corrugated.jpg',
+  'Wood_Floor_Light.jpg',
+];
+
+const MATERIAL_TEXTURE_HINTS = [
+  { words: ['metal', 'silver'], file: 'Metal_Silver.jpg', metalness: 0.8, roughness: 0.24 },
+  { words: ['glass'], file: 'Translucent_Glass_Corrugated.jpg', transparent: true, opacity: 0.16, roughness: 0.02 },
+  { words: ['translucent'], file: 'Translucent_Glass_Corrugated.jpg', transparent: true, opacity: 0.16, roughness: 0.02 },
+  { words: ['floor'], file: 'Wood_Floor_Light.jpg', roughness: 0.68 },
+  { words: ['wood'], file: 'Wood_Floor_Light.jpg', roughness: 0.68 },
+  { words: ['rep', '2', 'front'], file: 'Rep_2_front.jpg', preserveTextureColor: true },
+  { words: ['rep', '2', 'back'], file: 'Rep_2_back.jpg', preserveTextureColor: true },
+  { words: ['rep', '2', 'left'], file: 'Rep_2_left.jpg', preserveTextureColor: true },
+  { words: ['rep', '2', 'right'], file: 'Rep_2_right.jpg', preserveTextureColor: true },
+  { words: ['hs', '325'], file: 'Hs_325_copy.jpg' },
+];
 
 const assets = [
   { id: 'P01', label: '조립 셀', status: 'online' },
@@ -70,6 +95,111 @@ function makeLiveAlerts() {
     ...alert,
     time: formatTime(new Date(now - index * randomBetween(180000, 520000))),
   }));
+}
+
+function normalizeName(value = '') {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
+function loadModelTextures() {
+  const loader = new THREE.TextureLoader();
+
+  return TEXTURE_FILES.reduce((textures, file) => {
+    const texture = loader.load(TEXTURE_BASE_PATH + file);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.flipY = true;
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+
+    textures[file] = texture;
+    return textures;
+  }, {});
+}
+
+function createModelLoadingManager() {
+  const manager = new THREE.LoadingManager();
+  const textureMap = new Map(TEXTURE_FILES.map((file) => [file.toLowerCase(), file]));
+
+  manager.setURLModifier((url) => {
+    const normalizedUrl = url.replace(/\\/g, '/');
+    const fileName = normalizedUrl.split('/').pop()?.toLowerCase();
+
+    if (fileName && textureMap.has(fileName)) {
+      return TEXTURE_BASE_PATH + textureMap.get(fileName);
+    }
+
+    return url;
+  });
+
+  return manager;
+}
+
+function findTextureHint(material, mesh) {
+  const candidates = [
+    material?.name,
+    mesh?.name,
+    mesh?.parent?.name,
+    mesh?.parent?.parent?.name,
+  ].map(normalizeName);
+
+  return MATERIAL_TEXTURE_HINTS.find((hint) => (
+    hint.words && candidates.some((name) => hint.words.every((word) => name.includes(normalizeName(word))))
+  ));
+}
+
+function applyTextureToMaterial(material, mesh, textures) {
+  const hint = findTextureHint(material, mesh);
+  const texture = hint ? textures[hint.file] : null;
+  const materialName = normalizeName(material?.name);
+
+  if (!texture) {
+    if (materialName.startsWith('rep2')) {
+      if (material.color) {
+        material.color.set('#ffffff');
+      }
+      if (material.emissive && material.map) {
+        material.emissive.set('#ffffff');
+        material.emissiveMap = material.map;
+        material.emissiveIntensity = 0.45;
+      }
+      material.side = THREE.DoubleSide;
+      material.toneMapped = false;
+      material.needsUpdate = true;
+    }
+    return;
+  }
+
+  material.map = texture;
+
+  if (hint.preserveTextureColor && material.color) {
+    material.color.set('#ffffff');
+  }
+  if (hint.preserveTextureColor && material.emissive) {
+    material.emissive.set('#ffffff');
+    material.emissiveMap = texture;
+    material.emissiveIntensity = 0.72;
+  }
+  if (hint.preserveTextureColor) {
+    material.side = THREE.DoubleSide;
+    material.toneMapped = false;
+  }
+
+  if ('metalness' in material && hint.metalness !== undefined) {
+    material.metalness = hint.metalness;
+  }
+  if ('roughness' in material && hint.roughness !== undefined) {
+    material.roughness = hint.roughness;
+  }
+  if (hint.transparent) {
+    material.transparent = true;
+    material.opacity = hint.opacity;
+    material.depthWrite = false;
+    if (material.color) {
+      material.color.set('#ffffff');
+    }
+  }
+
+  material.needsUpdate = true;
 }
 
 function useLiveTelemetry() {
@@ -186,7 +316,11 @@ function ModelViewport() {
     const grid = new THREE.GridHelper(22, 22, '#0d4a3b', '#062f25');
     scene.add(grid);
 
-    new FBXLoader().load(
+    const textures = loadModelTextures();
+    const fbxLoader = new FBXLoader(createModelLoadingManager());
+    fbxLoader.setResourcePath(MODEL_RESOURCE_PATH);
+
+    fbxLoader.load(
       MODEL_PATH,
       (model) => {
         const foundNames = [];
@@ -230,6 +364,8 @@ function ModelViewport() {
             if (child.material) {
               const materials = Array.isArray(child.material) ? child.material : [child.material];
               materials.forEach(mat => {
+                applyTextureToMaterial(mat, child, textures);
+
                 if (mat.isMeshPhongMaterial) {
                   mat.shininess = Math.max(mat.shininess, 30);
                 }
@@ -299,6 +435,7 @@ function ModelViewport() {
     return () => {
         window.removeEventListener('resize', resize);
         cancelAnimationFrame(frameRef.current);
+        Object.values(textures).forEach((texture) => texture.dispose());
         if (mount.contains(renderer.domElement)) {
           mount.removeChild(renderer.domElement);
         }
