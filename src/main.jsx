@@ -365,7 +365,6 @@ function Sidebar({ assets: liveAssets, summary }) {
             <span className={asset.status === 'alert' ? 'asset-thumb alert' : 'asset-thumb'} />
             <span>
               <strong>{asset.id}</strong>
-              <small>{asset.label}</small>
             </span>
             <b className={asset.status === 'alert' ? 'dot warning' : 'dot'} />
           </button>
