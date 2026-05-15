@@ -4,8 +4,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import './styles.css';
-
-const MODEL_PATH = '/models/3DModel_Simulation.fbx';
+const MODEL_PATH = import.meta.env.BASE_URL + 'models/3DModel_Simulation.fbx';
 
 const assets = [
   { id: 'P01', label: '조립 셀', status: 'online' },
