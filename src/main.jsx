@@ -376,8 +376,8 @@ function Sidebar({ assets: liveAssets, summary }) {
 }
 
 function TopNav() {
-  const items = ['홈', '설비', '분석', '로봇', '보고서', '설정'];
-  const [activeTab, setActiveTab] = useState('홈');
+  const items = ['Home', 'Assets', 'Analytics', 'Robots', 'Reports', 'Settings'];
+  const [activeTab, setActiveTab] = useState('Home');
 
   return (
     <nav className="top-nav" aria-label="Main navigation">
