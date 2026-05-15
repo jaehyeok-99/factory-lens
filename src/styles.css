@@ -135,7 +135,7 @@ button {
 .asset-summary {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  min-height: 42px;
+  min-height: 36px;
   align-items: center;
   color: #d1e2dd;
   font-weight: 800;
@@ -230,16 +230,16 @@ button {
 
 .asset-row {
   display: grid;
-  grid-template-columns: 54px 1fr 12px;
-  min-height: 60px;
+  grid-template-columns: 44px 1fr 12px;
+  min-height: 48px;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.1);
   color: #d1e2dd;
   cursor: pointer;
-  padding: 8px;
+  padding: 6px 12px 6px 6px;
   text-align: left;
   transition:
     border-color 180ms ease,
@@ -260,8 +260,8 @@ button {
 
 .asset-thumb {
   display: block;
-  width: 52px;
-  height: 42px;
+  width: 44px;
+  height: 36px;
   border-radius: 6px;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent),
@@ -310,7 +310,7 @@ button {
 .top-nav {
   display: grid;
   grid-template-columns: repeat(6, minmax(80px, 1fr)) auto;
-  min-height: 58px;
+  min-height: 48px;
   align-items: center;
   overflow: hidden;
 }
@@ -353,7 +353,7 @@ button {
 
 .status-card {
   display: flex;
-  min-height: 48px;
+  min-height: 42px;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
