@@ -8,31 +8,31 @@ import './styles.css';
 const MODEL_PATH = '/models/3DModel_Simulation.fbx';
 
 const assets = [
-  { id: 'P01', label: 'Assembly cell', status: 'online' },
-  { id: 'P02', label: 'Robot arm A', status: 'online' },
-  { id: 'P03', label: 'Robot arm B', status: 'online' },
-  { id: 'P04', label: 'Rack sensor', status: 'alert' },
-  { id: 'P05', label: 'Conveyor node', status: 'online' },
-  { id: 'P06', label: 'Inspection bay', status: 'online' },
-  { id: 'P07', label: 'Thermal zone', status: 'alert' },
-  { id: 'P08', label: 'Packing line', status: 'online' },
+  { id: 'P01', label: '조립 셀', status: 'online' },
+  { id: 'P02', label: '로봇 팔 A', status: 'online' },
+  { id: 'P03', label: '로봇 팔 B', status: 'online' },
+  { id: 'P04', label: '랙 온도 센서', status: 'alert' },
+  { id: 'P05', label: '컨베이어 노드', status: 'online' },
+  { id: 'P06', label: '비전 검사 구역', status: 'online' },
+  { id: 'P07', label: '열처리 구역', status: 'alert' },
+  { id: 'P08', label: '포장 라인', status: 'online' },
 ];
 
 const alertMessages = [
-  { level: 'critical', code: 'P04', text: 'Rack temperature spike' },
-  { level: 'warning', code: 'R03', text: 'Robot cycle variance' },
-  { level: 'warning', code: 'P07', text: 'Thermal drift detected' },
-  { level: 'info', code: 'P02', text: 'Maintenance window ready' },
-  { level: 'info', code: 'R01', text: 'Calibration completed' },
-  { level: 'warning', code: 'P05', text: 'Conveyor load imbalance' },
-  { level: 'info', code: 'P06', text: 'Vision inspection passed' },
+  { level: 'critical', code: 'P04', text: '랙 온도 급증' },
+  { level: 'warning', code: 'R03', text: '로봇 작업 주기 오차' },
+  { level: 'warning', code: 'P07', text: '열 변형 감지' },
+  { level: 'info', code: 'P02', text: '유지보수 준비 완료' },
+  { level: 'info', code: 'R01', text: '영점 조정 완료' },
+  { level: 'warning', code: 'P05', text: '컨베이어 하중 불균형' },
+  { level: 'info', code: 'P06', text: '비전 검사 통과' },
 ];
 
 const kpis = [
-  { label: 'Equipment uptime', unit: '%', value: 92, min: 88, max: 98, accent: 'cyan' },
-  { label: 'Robot efficiency', unit: '%', value: 88, min: 82, max: 96, accent: 'blue' },
-  { label: 'Vehicle readiness', unit: '%', value: 95, min: 90, max: 99, accent: 'green' },
-  { label: 'Ambient temp', unit: 'C', value: 25.3, min: 23.8, max: 27.4, accent: 'orange' },
+  { label: '설비 가동률', unit: '%', value: 92, min: 88, max: 98, accent: 'cyan' },
+  { label: '로봇 작업 효율', unit: '%', value: 88, min: 82, max: 96, accent: 'blue' },
+  { label: '차량 준비 상태', unit: '%', value: 95, min: 90, max: 99, accent: 'green' },
+  { label: '주변 온도', unit: '°C', value: 25.3, min: 23.8, max: 27.4, accent: 'orange' },
 ];
 
 function clamp(value, min, max) {
@@ -53,12 +53,12 @@ function makeSeries(length = 10) {
 
 function makeLiveKpis(source = kpis) {
   return source.map((kpi) => {
-    const drift = kpi.unit === 'C' ? randomBetween(-0.35, 0.35) : randomBetween(-3, 3);
+    const drift = kpi.unit === '°C' ? randomBetween(-0.35, 0.35) : randomBetween(-3, 3);
     const value = clamp(kpi.value + drift, kpi.min, kpi.max);
 
     return {
       ...kpi,
-      value: kpi.unit === 'C' ? Number(value.toFixed(1)) : Math.round(value),
+      value: kpi.unit === '°C' ? Number(value.toFixed(1)) : Math.round(value),
       points: makeSeries(),
     };
   });
@@ -317,17 +317,17 @@ function ModelViewport() {
 }
 
 function Sidebar({ assets: liveAssets, summary }) {
-  const [activeFilter, setActiveFilter] = useState('List');
-  const filters = ['List', 'Grid', 'Filter'];
+  const [activeFilter, setActiveFilter] = useState('목록');
+  const filters = ['목록', '그리드', '필터'];
 
   return (
     <aside className="sidebar">
       <div className="brand">
-        <button className="menu-button" type="button" aria-label="Menu">Menu</button>
+        <button className="menu-button" type="button" aria-label="Menu">메뉴</button>
         <span className="brand-icon">FL</span>
         <div>
           <h1>FactoryLens</h1>
-          <p>Digital twin operations</p>
+          <p>디지털 트윈 관제</p>
         </div>
       </div>
 
@@ -351,8 +351,8 @@ function Sidebar({ assets: liveAssets, summary }) {
       </div>
 
       <div className="search-row">
-        <button type="button">All</button>
-        <input aria-label="Search assets" placeholder="Search assets" />
+        <button type="button">전체</button>
+        <input aria-label="Search assets" placeholder="설비 검색" />
       </div>
 
       <div className="asset-list">
@@ -376,8 +376,8 @@ function Sidebar({ assets: liveAssets, summary }) {
 }
 
 function TopNav() {
-  const items = ['Home', 'Assets', 'Analytics', 'Robots', 'Reports', 'Settings'];
-  const [activeTab, setActiveTab] = useState('Home');
+  const items = ['홈', '설비', '분석', '로봇', '보고서', '설정'];
+  const [activeTab, setActiveTab] = useState('홈');
 
   return (
     <nav className="top-nav" aria-label="Main navigation">
@@ -393,7 +393,7 @@ function TopNav() {
       ))}
       <div className="user-pill">
         <span className="online-dot" />
-        <span>Live Operator</span>
+        <span>운영자</span>
       </div>
     </nav>
   );
@@ -401,10 +401,10 @@ function TopNav() {
 
 function StatusStrip({ summary }) {
   const values = [
-    ['Machines', summary.machines],
-    ['Robots', summary.robots],
-    ['Vehicles', summary.vehicles],
-    ['Faults', summary.faults],
+    ['기계 설비', summary.machines],
+    ['로봇 장비', summary.robots],
+    ['운송 차량', summary.vehicles],
+    ['발생 오류', summary.faults],
   ];
 
   return (
@@ -420,8 +420,8 @@ function StatusStrip({ summary }) {
 }
 
 function AlertPanel({ alerts: liveAlerts }) {
-  const [activeTab, setActiveTab] = useState('Alerts');
-  const tabs = ['Alerts', 'Tasks', 'History'];
+  const [activeTab, setActiveTab] = useState('알림');
+  const tabs = ['알림', '작업', '기록'];
 
   return (
     <aside className="right-panel">
@@ -459,8 +459,8 @@ function AlertPanel({ alerts: liveAlerts }) {
 }
 
 function KpiCard({ label, value, unit, accent, points }) {
-  const displayValue = unit === 'C' ? `${value.toFixed(1)}C` : `${value}%`;
-  const ringValue = unit === 'C' ? Math.round(((value - 22) / 8) * 100) : value;
+  const displayValue = unit === '°C' ? `${value.toFixed(1)}°C` : `${value}%`;
+  const ringValue = unit === '°C' ? Math.round(((value - 22) / 8) * 100) : value;
 
   return (
     <article className={`kpi-card ${accent}`} style={{ '--ring': `${clamp(ringValue, 0, 100)}%` }}>
